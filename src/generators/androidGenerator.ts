@@ -198,21 +198,88 @@ ${config.name.toLowerCase()}_ndkVersion=27.1.12297006
   const androidSrcDir = path.join(androidDir, 'src', 'main')
   await fs.ensureDir(path.join(androidSrcDir, 'cpp'))
   await fs.ensureDir(
-    path.join(androidSrcDir, 'java', 'com', config.name.toLowerCase()),
+    path.join(
+      androidSrcDir,
+      'java',
+      'com',
+      'margelo',
+      'nitro',
+      config.name.toLowerCase(),
+    ),
   )
 
   const cppAdapterContent = `#include <jni.h>
-#include <fbjni/fbjni.h>
+#include "${toPascalCase(config.name)}OnLoad.hpp"
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
-    return facebook::jni::initialize(vm, [] {
-        // Register your JNI methods here
-    });
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
+  return margelo::nitro::${config.name.toLowerCase()}::initialize(vm);
 }
+`
+
+  const javaPackageContent = `package com.margelo.nitro.${config.name.toLowerCase()};
+
+import android.util.Log;
+
+import androidx.annotation.Nullable;
+
+import com.facebook.react.bridge.NativeModule;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.module.model.ReactModuleInfoProvider;
+import com.facebook.react.TurboReactPackage;
+import com.margelo.nitro.core.HybridObject;
+
+import java.util.HashMap;
+import java.util.function.Supplier;
+
+public class ${toPascalCase(config.name)}Package extends TurboReactPackage {
+  @Nullable
+  @Override
+  public NativeModule getModule(String name, ReactApplicationContext reactContext) {
+    return null;
+  }
+
+  @Override
+  public ReactModuleInfoProvider getReactModuleInfoProvider() {
+    return () -> {
+        return new HashMap<>();
+    };
+  }
+
+  static {
+    ${toPascalCase(config.name)}OnLoad.initializeNative();
+  }
+}
+`
+
+  const androidManifestContent = `<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+</manifest>
 `
 
   await fs.writeFile(
     path.join(androidSrcDir, 'cpp', 'cpp-adapter.cpp'),
     cppAdapterContent,
   )
+  await fs.writeFile(
+    path.join(
+      androidSrcDir,
+      'java',
+      'com',
+      'margelo',
+      'nitro',
+      config.name.toLowerCase(),
+      `${toPascalCase(config.name)}Package.java`,
+    ),
+    javaPackageContent,
+  )
+  await fs.writeFile(
+    path.join(androidSrcDir, 'AndroidManifest.xml'),
+    androidManifestContent,
+  )
+}
+
+function toPascalCase(str: string): string {
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
+    .replace(/\s+/g, '')
+    .replace(/[-_]/g, '')
 }

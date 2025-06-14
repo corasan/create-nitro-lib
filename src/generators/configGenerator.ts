@@ -13,7 +13,7 @@ export async function createNitroConfig(
       iosModuleName: toPascalCase(config.name),
     },
     android: {
-      androidNamespace: [`com.${config.name.toLowerCase()}`],
+      androidNamespace: [config.name.toLowerCase()],
       androidCxxLibName: config.name.toLowerCase(),
     },
     autolinking: {},
