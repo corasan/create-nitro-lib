@@ -1,5 +1,4 @@
 import { Box, Text } from 'ink'
-import React from 'react'
 import ProjectSetup from './ProjectSetup.js'
 
 interface Props {
@@ -25,11 +24,7 @@ export default function App({ projectName, flags }: Props) {
       <Text color="blue" bold>
         🚀 Creating Nitro Module: {projectName}
       </Text>
-      <ProjectSetup
-        projectName={projectName}
-        template={flags.template}
-        skipInstall={flags.skipInstall}
-      />
+      <ProjectSetup projectName={projectName} skipInstall={flags.skipInstall} />
     </Box>
   )
 }

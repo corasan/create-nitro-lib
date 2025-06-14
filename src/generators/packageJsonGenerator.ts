@@ -136,7 +136,7 @@ export async function createRootPackageJson(
 }
 
 export async function createPackagePackageJson(
-  projectDir: string,
+  packageDir: string,
   config: ProjectConfig,
 ) {
   const packageJson = {
@@ -205,11 +205,9 @@ export async function createPackagePackageJson(
     },
   }
 
-  await fs.writeJson(
-    path.join(projectDir, 'package', 'package.json'),
-    packageJson,
-    { spaces: 2 },
-  )
+  await fs.writeJson(path.join(packageDir, 'package.json'), packageJson, {
+    spaces: 2,
+  })
 }
 
 function toPascalCase(str: string): string {

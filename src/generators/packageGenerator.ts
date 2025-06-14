@@ -1,13 +1,13 @@
 import path from 'node:path'
 import fs from 'fs-extra'
-import { createAndroidStructure } from './androidGenerator'
-import { createNitroConfig } from './configGenerator'
-import { createPackageConfigFiles } from './configGenerator'
-import { createCppImplementation } from './cppGenerator'
-import { createIosStructure } from './iosGenerator'
-import { createIosSwiftImplementation } from './iosGenerator'
-import { createPackagePackageJson } from './packageJsonGenerator'
-import type { ProjectConfig } from './types'
+import { createAndroidStructure } from './androidGenerator.js'
+import { createNitroConfig } from './configGenerator.js'
+import { createPackageConfigFiles } from './configGenerator.js'
+import { createCppImplementation } from './cppGenerator.js'
+import { createIosStructure } from './iosGenerator.js'
+import { createIosSwiftImplementation } from './iosGenerator.js'
+import { createPackagePackageJson } from './packageJsonGenerator.js'
+import type { ProjectConfig } from './types.js'
 
 export async function createPackageStructure(
   projectDir: string,

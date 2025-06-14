@@ -9,33 +9,144 @@ export async function createAndroidStructure(
   const androidDir = path.join(packageDir, 'android')
   await fs.ensureDir(androidDir)
 
-  const buildGradleContent = `apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+  const buildGradleContent = `buildscript {
+  repositories {
+    google()
+    mavenCentral()
+  }
 
-def safeExtGet(prop, fallback) {
-    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+  dependencies {
+    classpath "com.android.tools.build:gradle:8.10.1"
+  }
+}
+
+def reactNativeArchitectures() {
+  def value = rootProject.getProperties().get("reactNativeArchitectures")
+  return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
+}
+
+def isNewArchitectureEnabled() {
+  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+}
+
+apply plugin: "com.android.library"
+apply plugin: 'org.jetbrains.kotlin.android'
+apply from: '../nitrogen/generated/android/${config.name.toLowerCase()}+autolinking.gradle'
+
+if (isNewArchitectureEnabled()) {
+  apply plugin: "com.facebook.react"
+}
+
+def getExtOrDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["${config.name.toLowerCase()}_" + name]
+}
+
+def getExtOrIntegerDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["${config.name.toLowerCase()}_" + name]).toInteger()
 }
 
 android {
-    compileSdkVersion safeExtGet('compileSdkVersion', 34)
-    buildToolsVersion safeExtGet('buildToolsVersion', '34.0.0')
+  namespace "com.margelo.nitro.${config.name.toLowerCase()}"
 
-    defaultConfig {
-        minSdkVersion safeExtGet('minSdkVersion', 21)
-        targetSdkVersion safeExtGet('targetSdkVersion', 34)
-    }
+  ndkVersion getExtOrDefault("ndkVersion")
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+
+  defaultConfig {
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
     externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-            version "3.22.1"
+      cmake {
+        cppFlags "-frtti -fexceptions -Wall -Wextra -fstack-protector-all"
+        arguments "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+        abiFilters (*reactNativeArchitectures())
+
+        buildTypes {
+          debug {
+            cppFlags "-O1 -g"
+          }
+          release {
+            cppFlags "-O2"
+          }
         }
+      }
     }
+  }
+
+  externalNativeBuild {
+    cmake {
+      path "CMakeLists.txt"
+    }
+  }
+
+  packagingOptions {
+    excludes = [
+            "META-INF",
+            "META-INF/**",
+            "**/libc++_shared.so",
+            "**/libfbjni.so",
+            "**/libjsi.so",
+            "**/libfolly_json.so",
+            "**/libfolly_runtime.so",
+            "**/libglog.so",
+            "**/libhermes.so",
+            "**/libhermes-executor-debug.so",
+            "**/libhermes_executor.so",
+            "**/libreactnative.so",
+            "**/libreactnativejni.so",
+            "**/libturbomodulejsijni.so",
+            "**/libreact_nativemodule_core.so",
+            "**/libjscexecutor.so"
+    ]
+  }
+
+  buildFeatures {
+    buildConfig true
+    prefab true
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+    }
+  }
+
+  lintOptions {
+    disable "GradleCompatible"
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  sourceSets {
+    main {
+      if (isNewArchitectureEnabled()) {
+        java.srcDirs += [
+          // React Codegen files
+          "\${project.buildDir}/generated/source/codegen/java"
+        ]
+      }
+    }
+  }
 }
 
+repositories {
+  mavenCentral()
+  google()
+}
+
+
 dependencies {
-    implementation 'com.facebook.react:react-native:+'
-    implementation 'com.margelo.nitro:nitro-modules:+'
+  // For < 0.71, this will be from the local maven repo
+  // For > 0.71, this will be replaced by \`com.facebook.react:react-android:$version\` by react gradle plugin
+  //noinspection GradleDynamicVersion
+  implementation "com.facebook.react:react-native:+"
+
+  // Add a dependency on NitroModules
+  implementation project(":react-native-nitro-modules")
 }
 `
 
@@ -52,7 +163,7 @@ add_library(\${PACKAGE_NAME} SHARED
 )
 
 # Add Nitrogen specs :)
-include(\${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/${config.name.toLowerCase()}+autolinking.cmake)
+include(\${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/\${PACKAGE_NAME}+autolinking.cmake)
 
 # Set up local includes
 include_directories(
@@ -70,8 +181,11 @@ target_link_libraries(
 )
 `
 
-  const gradlePropertiesContent = `android.useAndroidX=true
-android.enableJetifier=true
+  const gradlePropertiesContent = `${config.name.toLowerCase()}_kotlinVersion=2.0.21
+${config.name.toLowerCase()}_minSdkVersion=23
+${config.name.toLowerCase()}_targetSdkVersion=35
+${config.name.toLowerCase()}_compileSdkVersion=34
+${config.name.toLowerCase()}_ndkVersion=27.1.12297006
 `
 
   await fs.writeFile(path.join(androidDir, 'build.gradle'), buildGradleContent)

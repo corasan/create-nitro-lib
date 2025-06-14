@@ -1,11 +1,10 @@
-import { Box, Text, useInput } from 'ink'
-import React, { useState, useEffect } from 'react'
+import { Box, Text } from 'ink'
+import { useEffect, useState } from 'react'
 import { generateProject } from '../utils/fileGenerator.js'
 import { detectPackageManager, getRunCommand } from '../utils/packageManager.js'
 
 interface Props {
   projectName: string
-  template: string
   skipInstall: boolean
 }
 
@@ -16,11 +15,7 @@ interface ProjectConfig {
   packageName: string
 }
 
-export default function ProjectSetup({
-  projectName,
-  template,
-  skipInstall,
-}: Props) {
+export default function ProjectSetup({ projectName, skipInstall }: Props) {
   const [config] = useState<ProjectConfig>({
     name: projectName,
     description: 'A React Native Nitro module',
@@ -33,7 +28,7 @@ export default function ProjectSetup({
   useEffect(() => {
     if (!isGenerating && !isComplete) {
       setIsGenerating(true)
-      generateProject(config, template, skipInstall)
+      generateProject(config, skipInstall)
         .then(() => {
           setIsComplete(true)
           setIsGenerating(false)
@@ -43,7 +38,7 @@ export default function ProjectSetup({
           setIsGenerating(false)
         })
     }
-  }, [config, template, skipInstall, isGenerating, isComplete])
+  }, [config, skipInstall, isGenerating, isComplete])
 
   if (isComplete) {
     const packageManager = detectPackageManager()
