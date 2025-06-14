@@ -42,8 +42,9 @@ export async function createIosSwiftImplementation(
   await fs.ensureDir(specsDir)
 
   const swiftContent = `import Foundation
+import NitroModules
 
-class ${toPascalCase(config.name)}: HybridObject {
+class Hybrid${toPascalCase(config.name)}: Hybrid${toPascalCase(config.name)}Spec {
 
     func hello(name: String) -> String {
         return "Hello \\(name) from ${toPascalCase(config.name)}!"
@@ -52,17 +53,11 @@ class ${toPascalCase(config.name)}: HybridObject {
     func add(a: Double, b: Double) -> Double {
         return a + b
     }
-
-    var hybridContext = margelo.nitro.HybridContext()
-
-    var memorySize: Int {
-        return getSizeOf(self)
-    }
 }
 `
 
   await fs.writeFile(
-    path.join(specsDir, `${toPascalCase(config.name)}.swift`),
+    path.join(specsDir, `Hybrid${toPascalCase(config.name)}.swift`),
     swiftContent,
   )
 }
