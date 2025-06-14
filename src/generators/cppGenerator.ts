@@ -9,52 +9,43 @@ export async function createCppImplementation(
   const cppDir = path.join(packageDir, 'cpp')
   await fs.ensureDir(cppDir)
 
-  const cppContent = `#include "${toPascalCase(config.name)}.hpp"
+  const cppContent = `#pragma once
 
-namespace ${toPascalCase(config.name)} {
+#include "Hybrid${toPascalCase(config.name)}Spec.hpp"
 
-std::string ${toPascalCase(config.name)}::hello(const std::string& name) {
+namespace margelo::nitro::${config.name.toLowerCase()} {
+  std::string ${toPascalCase(config.name)}::hello(const std::string& name) {
     return "Hello " + name + " from ${toPascalCase(config.name)}!";
-}
+  }
 
-double ${toPascalCase(config.name)}::add(double a, double b) {
+  double ${toPascalCase(config.name)}::add(double a, double b) {
     return a + b;
-}
-
-} // namespace ${toPascalCase(config.name)}
+  }
+} // namespace margelo::nitro::${toPascalCase(config.name)}
 `
 
   const hppContent = `#pragma once
 
-#include <NitroModules/HybridObject.hpp>
+#include "Hybrid${toPascalCase(config.name)}Spec.hpp"
 #include <string>
 
-namespace ${toPascalCase(config.name)} {
+namespace margelo::nitro::${config.name.toLowerCase()} {
+class Hybrid${toPascalCase(config.name)}: public Hybrid${toPascalCase(config.name)}Spec {
+  public:
+    Hybrid${toPascalCase(config.name)}(): HybridObject(TAG) {}
 
-using namespace margelo::nitro;
-
-class ${toPascalCase(config.name)} : public HybridObject {
-public:
     std::string hello(const std::string& name);
     double add(double a, double b);
-
-public:
-    // Hybrid Object setup
-    void loadHybridMethods() override {
-        registerHybridMethod("hello", &${toPascalCase(config.name)}::hello, this);
-        registerHybridMethod("add", &${toPascalCase(config.name)}::add, this);
-    }
-};
-
-} // namespace ${toPascalCase(config.name)}
+  };
+} // namespace margelo::nitro::${config.name.toLowerCase()}
 `
 
   await fs.writeFile(
-    path.join(cppDir, `${toPascalCase(config.name)}.cpp`),
+    path.join(cppDir, `Hybrid${toPascalCase(config.name)}.cpp`),
     cppContent,
   )
   await fs.writeFile(
-    path.join(cppDir, `${toPascalCase(config.name)}.hpp`),
+    path.join(cppDir, `Hybrid${toPascalCase(config.name)}.hpp`),
     hppContent,
   )
 }
