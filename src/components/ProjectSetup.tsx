@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from 'ink'
 import React, { useState, useEffect } from 'react'
 import { generateProject } from '../utils/fileGenerator.js'
+import { detectPackageManager, getRunCommand } from '../utils/packageManager.js'
 
 interface Props {
   projectName: string
@@ -45,14 +46,17 @@ export default function ProjectSetup({
   }, [config, template, skipInstall, isGenerating, isComplete])
 
   if (isComplete) {
+    const packageManager = detectPackageManager()
+    const runCommand = getRunCommand(packageManager)
+
     return (
       <Box flexDirection="column">
         <Text color="green">✅ Project created successfully!</Text>
         <Text>
           Next steps:
           {'\n'} cd {projectName}
-          {'\n'} npm run build
-          {'\n'} cd example && npm run android
+          {'\n'} {runCommand} build
+          {'\n'} cd example && {runCommand} android
         </Text>
       </Box>
     )
