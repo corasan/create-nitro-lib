@@ -96,8 +96,11 @@ async function createRootPackageJson(
       '@release-it-plugins/workspaces': '^4.2.0',
       '@release-it/bumper': '^7.0.2',
       '@release-it/conventional-changelog': '^10.0.0',
-      'release-it': '^19.0.3',
+      'release-it': '^18.1.2',
       typescript: '^5.7.3',
+    },
+    resolutions: {
+      'release-it': '^18.1.2',
     },
     'release-it': {
       npm: {
@@ -328,7 +331,7 @@ export * from './specs/${toPascalCase(config.name)}Spec';
   // Create example spec
   const specContent = `import { HybridObject } from 'react-native-nitro-modules';
 
-export interface ${toPascalCase(config.name)}Spec extends HybridObject<{ ios: '${toPascalCase(config.name)}'; android: '${toPascalCase(config.name)}' }> {
+export interface ${toPascalCase(config.name)}Spec extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> {
   hello(name: string): string;
   add(a: number, b: number): number;
 }
@@ -398,30 +401,34 @@ dependencies {
 }
 `
 
-  const cmakeContent = `cmake_minimum_required(VERSION 3.22.1)
+  const cmakeContent = `project(${config.name.toLowerCase()})
+cmake_minimum_required(VERSION 3.9.0)
 
-project(${config.name.toLowerCase()})
-
+set(PACKAGE_NAME ${config.name.toLowerCase()})
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(fbjni REQUIRED CONFIG)
-find_package(ReactAndroid REQUIRED CONFIG)
-
-add_library(
-    ${config.name.toLowerCase()}
-    SHARED
-    src/main/cxx/JNI_OnLoad.cpp
-    ../cpp/${toPascalCase(config.name)}.cpp
+# Define C++ library and add all sources
+add_library(\${PACKAGE_NAME} SHARED
+        src/main/cpp/cpp-adapter.cpp
 )
 
+# Add Nitrogen specs :)
+include(\${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/${config.name.toLowerCase()}+autolinking.cmake)
+
+# Set up local includes
+include_directories(
+    "src/main/cpp"
+    "../cpp"
+)
+
+find_library(LOG_LIB log)
+
+# Link all libraries together
 target_link_libraries(
-    ${config.name.toLowerCase()}
-    ReactAndroid::jsi
-    ReactAndroid::reactnativejni
-    fbjni::fbjni
+    \${PACKAGE_NAME}
+    \${LOG_LIB}
     android
-    log
 )
 `
 
@@ -553,7 +560,6 @@ async function createIosSwiftImplementation(
   await fs.ensureDir(specsDir)
 
   const swiftContent = `import Foundation
-import NitroModules
 
 class ${toPascalCase(config.name)}: HybridObject {
 
