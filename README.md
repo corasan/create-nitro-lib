@@ -13,7 +13,7 @@ bunx create-nitro-lib my-awesome-module
 With options:
 
 ```bash
-create-nitro-lib my-module --template basic --skip-install
+bunx create-nitro-lib my-module --template basic --skip-install
 ```
 
 ## Features
