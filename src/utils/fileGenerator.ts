@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process'
 import path from 'node:path'
 import fs from 'fs-extra'
+import { detectPackageManager, getInstallCommand } from './packageManager.js'
 
 interface ProjectConfig {
   name: string
@@ -95,7 +96,7 @@ async function createRootPackageJson(
       '@release-it-plugins/workspaces': '^4.2.0',
       '@release-it/bumper': '^7.0.2',
       '@release-it/conventional-changelog': '^10.0.0',
-      'release-it': '^18.1.2',
+      'release-it': '^19.0.3',
       typescript: '^5.7.3',
     },
     'release-it': {
@@ -897,15 +898,18 @@ MIT
 }
 
 async function installDependencies(projectDir: string): Promise<void> {
+  const packageManager = detectPackageManager()
+  const installCommand = getInstallCommand(packageManager)
+
   try {
-    console.log('Installing dependencies...')
-    execSync('npm install', {
+    console.log(`Installing dependencies with ${packageManager}...`)
+    execSync(installCommand, {
       cwd: projectDir,
       stdio: 'inherit',
     })
   } catch (error) {
     console.warn(
-      "Failed to install dependencies automatically. Please run 'npm install' manually.",
+      `Failed to install dependencies automatically. Please run '${installCommand}' manually.`,
     )
   }
 }
