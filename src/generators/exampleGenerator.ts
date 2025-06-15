@@ -24,7 +24,7 @@ export async function createExampleStructure(
     dependencies: {
       '@expo/vector-icons': '^14.0.2',
       '@react-navigation/native': '^7.0.14',
-      expo: '~52.0.37',
+      expo: '~53.0.11',
       'expo-build-properties': '~0.13.2',
       'expo-font': '~13.0.4',
       'expo-linking': '~7.0.5',
@@ -263,6 +263,23 @@ yarn-error.*
 *.tsbuildinfo
 `
 
+  const metroConfigContent = `const { getDefaultConfig } = require("expo/metro-config");
+const path = require("path");
+
+const projectRoot = __dirname;
+const monorepoRoot = path.resolve(projectRoot, "../..");
+
+const config = getDefaultConfig(projectRoot);
+
+config.watchFolders = [monorepoRoot];
+config.resolver.nodeModulesPaths = [
+	path.resolve(projectRoot, "node_modules"),
+	path.resolve(monorepoRoot, "node_modules"),
+];
+
+module.exports = config;
+`
+
   await fs.writeJson(
     path.join(exampleDir, 'package.json'),
     examplePackageJson,
@@ -277,6 +294,10 @@ yarn-error.*
     spaces: 2,
   })
   await fs.writeFile(path.join(exampleDir, '.gitignore'), gitignoreContent)
+  await fs.writeFile(
+    path.join(exampleDir, 'metro.config.js'),
+    metroConfigContent,
+  )
 
   const componentsDir = path.join(exampleDir, 'components')
   const assetsImagesDir = path.join(exampleDir, 'assets', 'images')
