@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createCppImplementation(
@@ -10,18 +11,16 @@ export async function createCppImplementation(
   await fs.ensureDir(cppDir)
 
   const pascalName = toPascalCase(config.name)
-  const lowercaseName = config.name.toLowerCase()
+  const lowercaseName = pascalName.toLowerCase()
 
-  const cppContent = `#pragma once
-
-#include "Hybrid${pascalName}Spec.hpp"
+  const cppContent = `#include "Hybrid${pascalName}.hpp"
 
 namespace margelo::nitro::${lowercaseName} {
   std::string Hybrid${pascalName}::hello(const std::string& name) {
-  return "Hello " + name + " from ${pascalName}!";
+    return "Hello " + name + " from ${pascalName}!";
   }
 
-  double ${pascalName}::add(double a, double b) {
+  double Hybrid${pascalName}::add(double a, double b) {
     return a + b;
   }
 } // namespace margelo::nitro::${lowercaseName}
@@ -33,7 +32,7 @@ namespace margelo::nitro::${lowercaseName} {
 #include <string>
 
 namespace margelo::nitro::${lowercaseName} {
-class Hybrid${pascalName}: public Hybrid${pascalName}Spec {
+  class Hybrid${pascalName}: public Hybrid${pascalName}Spec {
   public:
     Hybrid${pascalName}(): HybridObject(TAG) {}
 
@@ -45,11 +44,4 @@ class Hybrid${pascalName}: public Hybrid${pascalName}Spec {
 
   await fs.writeFile(path.join(cppDir, `Hybrid${pascalName}.cpp`), cppContent)
   await fs.writeFile(path.join(cppDir, `Hybrid${pascalName}.hpp`), hppContent)
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }

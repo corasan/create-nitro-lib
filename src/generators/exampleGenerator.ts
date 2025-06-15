@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createExampleStructure(
@@ -418,11 +419,4 @@ export default {
       await fs.copy(sourcePath, destPath)
     }
   }
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }

@@ -1,20 +1,22 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createNitroConfig(
   packageDir: string,
   config: ProjectConfig,
 ) {
+  const pascalName = toPascalCase(config.name)
   const nitroConfig = {
     $schema: 'https://nitro.margelo.com/nitro.schema.json',
-    cxxNamespace: [config.name.toLowerCase()],
+    cxxNamespace: [pascalName.toLowerCase()],
     ios: {
-      iosModuleName: config.name.toLowerCase(),
+      iosModuleName: pascalName,
     },
     android: {
-      androidNamespace: [config.name.toLowerCase()],
-      androidCxxLibName: config.name.toLowerCase(),
+      androidNamespace: [pascalName.toLowerCase()],
+      androidCxxLibName: pascalName,
     },
     autolinking: {},
     ignorePaths: ['**/node_modules'],
@@ -161,6 +163,7 @@ dist/
 .gradle/
 `
 
+  const pascaleName = toPascalCase(config.name)
   const readmeContent = `# ${config.packageName}
 
 ${config.description}
@@ -174,12 +177,12 @@ npm install ${config.packageName}
 ## Usage
 
 \`\`\`javascript
-import { ${toPascalCase(config.name)}Spec } from '${config.packageName}';
+import { ${pascaleName}Spec } from '${config.packageName}';
 import { NitroModules } from 'react-native-nitro-modules';
 
-const ${toPascalCase(config.name)} = NitroModules.create<${toPascalCase(config.name)}Spec>('${toPascalCase(config.name)}');
+const ${pascaleName} = NitroModules.create<${pascaleName}Spec>('${pascaleName}');
 
-const result = ${toPascalCase(config.name)}.hello('World');
+const result = ${pascaleName}.hello('World');
 console.log(result);
 \`\`\`
 
@@ -232,11 +235,4 @@ MIT
   })
   await fs.writeFile(path.join(projectDir, '.gitignore'), gitignoreContent)
   await fs.writeFile(path.join(projectDir, 'README.md'), readmeContent)
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }

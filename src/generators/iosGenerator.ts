@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createIosStructure(
@@ -9,14 +10,14 @@ export async function createIosStructure(
   const iosDir = path.join(packageDir, 'ios')
   await fs.ensureDir(iosDir)
 
-  const pascaleName = toPascalCase(config.name)
+  const pascalName = toPascalCase(config.name)
 
   const podspecContent = `require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
-  s.name         = "${pascaleName}"
+  s.name         = "${pascalName}"
   s.version      = package["version"]
   s.summary      = package["description"]
   s.homepage     = package["homepage"]
@@ -40,7 +41,7 @@ Pod::Spec.new do |s|
     "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES"
   }
 
-  load 'nitrogen/generated/ios/${pascaleName}+autolinking.rb'
+  load 'nitrogen/generated/ios/${pascalName}+autolinking.rb'
   add_nitrogen_files(s)
 
   s.dependency 'React-jsi'
@@ -50,7 +51,7 @@ end
 `
 
   await fs.writeFile(
-    path.join(packageDir, `${pascaleName}.podspec`),
+    path.join(packageDir, `${pascalName}.podspec`),
     podspecContent,
   )
 }
@@ -62,15 +63,15 @@ export async function createIosSwiftImplementation(
   const iosDir = path.join(packageDir, 'ios')
   const specsDir = path.join(iosDir, 'specs')
   await fs.ensureDir(specsDir)
-  const pascaleName = toPascalCase(config.name)
+  const pascalName = toPascalCase(config.name)
 
   const swiftContent = `import Foundation
 import NitroModules
 
-class Hybrid${pascaleName}: Hybrid${pascaleName}Spec {
+class Hybrid${pascalName}: Hybrid${pascalName}Spec {
 
     func hello(name: String) -> String {
-        return "Hello \\(name) from ${pascaleName}!"
+        return "Hello \\(name) from ${pascalName}!"
     }
 
     func add(a: Double, b: Double) -> Double {
@@ -80,14 +81,7 @@ class Hybrid${pascaleName}: Hybrid${pascaleName}Spec {
 `
 
   await fs.writeFile(
-    path.join(specsDir, `Hybrid${pascaleName}.swift`),
+    path.join(specsDir, `Hybrid${pascalName}.swift`),
     swiftContent,
   )
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }

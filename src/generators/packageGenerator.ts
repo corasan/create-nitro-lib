@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import { createAndroidStructure } from './androidGenerator.js'
 import { createNitroConfig } from './configGenerator.js'
 import { createPackageConfigFiles } from './configGenerator.js'
@@ -51,11 +52,4 @@ export interface ${toPascalCase(config.name)} extends HybridObject<{ ios: 'swift
     path.join(specsDir, `${toPascalCase(config.name)}.nitro.ts`),
     specContent,
   )
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }

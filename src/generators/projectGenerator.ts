@@ -12,7 +12,7 @@ export async function generateProject(
   config: ProjectConfig,
   skipInstall: boolean,
 ): Promise<void> {
-  const projectDir = path.join(process.cwd(), config.name)
+  const projectDir = path.join(process.cwd(), config.packageName)
 
   await fs.ensureDir(projectDir)
 

@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createRootPackageJson(
@@ -204,11 +205,4 @@ export async function createPackagePackageJson(
   await fs.writeJson(path.join(packageDir, 'package.json'), packageJson, {
     spaces: 2,
   })
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }
