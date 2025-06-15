@@ -163,8 +163,6 @@ export const unstable_settings = {
   initialRouteName: '(tabs)',
 }
 
-SplashScreen.preventAutoHideAsync()
-
 export default function RootLayout() {
   const colorScheme = useColorScheme()
 
