@@ -9,21 +9,41 @@ export async function createIosStructure(
   const iosDir = path.join(packageDir, 'ios')
   await fs.ensureDir(iosDir)
 
-  const podspecContent = `Pod::Spec.new do |s|
-  s.name         = "${config.packageName}"
-  s.version      = "0.1.0"
-  s.summary      = "${config.description}"
-  s.homepage     = "https://github.com/${config.author}/${config.name}"
-  s.license      = "MIT"
-  s.author       = { "Author" => "${config.author}" }
-  s.platform     = :ios, "13.0"
-  s.source       = { :git => "https://github.com/${config.author}/${config.name}.git", :tag => "#{s.version}" }
+  const podspecContent = `require "json"
 
-  s.source_files = "ios/**/*.{h,m,mm,swift,cpp}"
-  s.public_header_files = "ios/**/*.h"
+package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
-  s.dependency "React-Core"
-  s.dependency "NitroModules"
+Pod::Spec.new do |s|
+  s.name         = "react-native-${config.name}"
+  s.version      = package["version"]
+  s.summary      = package["description"]
+  s.homepage     = package["homepage"]
+  s.license      = package["license"]
+  s.authors      = package["author"]
+
+  s.platforms    = { :ios => min_ios_version_supported, :visionos => 1.0 }
+  s.source       = { :git => "https://github.com/Developer/react-native-${config.name}.git", :tag => "#{s.version}" }
+
+  s.source_files = [
+    # Implementation (Swift)
+    "ios/**/*.{swift}",
+    # Autolinking/Registration (Objective-C++)
+    "ios/**/*.{m,mm}",
+    # Implementation (C++ objects)
+    "cpp/**/*.{hpp,cpp}",
+  ]
+
+  s.pod_target_xcconfig = {
+    # C++ compiler flags, mainly for folly.
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES"
+  }
+
+  load 'nitrogen/generated/ios/${toPascalCase(config.name)}+autolinking.rb'
+  add_nitrogen_files(s)
+
+  s.dependency 'React-jsi'
+  s.dependency 'React-callinvoker'
+  install_modules_dependencies(s)
 end
 `
 

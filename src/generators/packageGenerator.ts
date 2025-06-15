@@ -32,7 +32,7 @@ export async function createPackageSourceStructure(
   const srcDir = path.join(packageDir, 'src')
   await fs.ensureDir(srcDir)
 
-  const indexContent = `export * from './specs/${toPascalCase(config.name)}';
+  const indexContent = `export * from './specs/${toPascalCase(config.name)}.nitro';
 `
 
   const specsDir = path.join(srcDir, 'specs')
