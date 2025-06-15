@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createIosStructure(
@@ -9,26 +10,48 @@ export async function createIosStructure(
   const iosDir = path.join(packageDir, 'ios')
   await fs.ensureDir(iosDir)
 
-  const podspecContent = `Pod::Spec.new do |s|
-  s.name         = "${config.packageName}"
-  s.version      = "0.1.0"
-  s.summary      = "${config.description}"
-  s.homepage     = "https://github.com/${config.author}/${config.name}"
-  s.license      = "MIT"
-  s.author       = { "Author" => "${config.author}" }
-  s.platform     = :ios, "13.0"
-  s.source       = { :git => "https://github.com/${config.author}/${config.name}.git", :tag => "#{s.version}" }
+  const pascalName = toPascalCase(config.name)
 
-  s.source_files = "ios/**/*.{h,m,mm,swift,cpp}"
-  s.public_header_files = "ios/**/*.h"
+  const podspecContent = `require "json"
 
-  s.dependency "React-Core"
-  s.dependency "NitroModules"
+package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+
+Pod::Spec.new do |s|
+  s.name         = "${pascalName}"
+  s.version      = package["version"]
+  s.summary      = package["description"]
+  s.homepage     = package["homepage"]
+  s.license      = package["license"]
+  s.authors      = package["author"]
+
+  s.platforms    = { :ios => min_ios_version_supported, :visionos => 1.0 }
+  s.source       = { :git => "https://github.com/Developer/${config.packageName}.git", :tag => "#{s.version}" }
+
+  s.source_files = [
+    # Implementation (Swift)
+    "ios/**/*.{swift}",
+    # Autolinking/Registration (Objective-C++)
+    "ios/**/*.{m,mm}",
+    # Implementation (C++ objects)
+    "cpp/**/*.{hpp,cpp}",
+  ]
+
+  s.pod_target_xcconfig = {
+    # C++ compiler flags, mainly for folly.
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES"
+  }
+
+  load 'nitrogen/generated/ios/${pascalName}+autolinking.rb'
+  add_nitrogen_files(s)
+
+  s.dependency 'React-jsi'
+  s.dependency 'React-callinvoker'
+  install_modules_dependencies(s)
 end
 `
 
   await fs.writeFile(
-    path.join(packageDir, `${config.packageName}.podspec`),
+    path.join(packageDir, `${pascalName}.podspec`),
     podspecContent,
   )
 }
@@ -40,14 +63,15 @@ export async function createIosSwiftImplementation(
   const iosDir = path.join(packageDir, 'ios')
   const specsDir = path.join(iosDir, 'specs')
   await fs.ensureDir(specsDir)
+  const pascalName = toPascalCase(config.name)
 
   const swiftContent = `import Foundation
 import NitroModules
 
-class Hybrid${toPascalCase(config.name)}: Hybrid${toPascalCase(config.name)}Spec {
+class Hybrid${pascalName}: Hybrid${pascalName}Spec {
 
     func hello(name: String) -> String {
-        return "Hello \\(name) from ${toPascalCase(config.name)}!"
+        return "Hello \\(name) from ${pascalName}!"
     }
 
     func add(a: Double, b: Double) -> Double {
@@ -57,14 +81,7 @@ class Hybrid${toPascalCase(config.name)}: Hybrid${toPascalCase(config.name)}Spec
 `
 
   await fs.writeFile(
-    path.join(specsDir, `Hybrid${toPascalCase(config.name)}.swift`),
+    path.join(specsDir, `Hybrid${pascalName}.swift`),
     swiftContent,
   )
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }

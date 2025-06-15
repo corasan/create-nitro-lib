@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createRootPackageJson(
@@ -150,14 +151,12 @@ export async function createPackagePackageJson(
     source: './src/index',
     author: config.author,
     scripts: {
-      'run-android': 'npx react-native run-android',
-      'run-ios': 'npx react-native run-ios',
-      'nitro-codegen': 'nitro-codegen --logLevel info',
-      prepack: 'cp ../README.md README.md',
-      postpack: 'rm -f README.md',
-      dev: 'nitro-codegen --watch',
-      build: 'nitro-codegen --outputOnlyAbi',
-      specs: 'nitro-codegen --validate',
+      postinstall: 'tsc || exit 0;',
+      typecheck: 'tsc --noEmit',
+      clean: 'rm -rf android/build node_modules/**/android/build lib',
+      typescript: 'tsc',
+      build: 'rm -rf lib && bun typecheck && bob build',
+      specs: 'bun nitro-codegen --logLevel="debug"',
     },
     keywords: ['react-native', 'nitro'],
     repository: `https://github.com/${config.author}/${config.name}.git`,
@@ -188,15 +187,13 @@ export async function createPackagePackageJson(
       'README.md',
     ],
     peerDependencies: {
+      react: '*',
       'react-native': '*',
       'react-native-nitro-modules': '*',
     },
     devDependencies: {
-      '@types/react': '^18.2.6',
-      '@types/react-native': '^0.73.0',
-      react: '^18.2.0',
-      'react-native': '^0.75.0',
-      'react-native-nitro-modules': '^0.15.0',
+      '@types/react': '*',
+      'nitro-codegen': '^0.26.2',
     },
     codegenConfig: {
       name: `${toPascalCase(config.name)}Spec`,
@@ -208,11 +205,4 @@ export async function createPackagePackageJson(
   await fs.writeJson(path.join(packageDir, 'package.json'), packageJson, {
     spaces: 2,
   })
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }

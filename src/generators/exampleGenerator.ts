@@ -1,5 +1,7 @@
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createExampleStructure(
@@ -23,28 +25,30 @@ export async function createExampleStructure(
     dependencies: {
       '@expo/vector-icons': '^14.0.2',
       '@react-navigation/native': '^7.0.14',
-      expo: '~52.0.37',
-      'expo-build-properties': '~0.13.2',
-      'expo-font': '~13.0.4',
-      'expo-linking': '~7.0.5',
-      'expo-router': '~4.0.17',
-      'expo-splash-screen': '~0.29.22',
-      'expo-status-bar': '~2.0.1',
-      'expo-system-ui': '~4.0.8',
-      'expo-web-browser': '~14.0.2',
-      react: '18.3.1',
-      'react-dom': '18.3.1',
-      'react-native': '0.76.7',
+      expo: '~53.0.11',
+      'expo-build-properties': '~0.14.6',
+      'expo-dev-client': '~5.2.0',
+      'expo-font': '~13.3.1',
+      'expo-linking': '~7.1.5',
+      'expo-router': '~5.1.0',
+      'expo-splash-screen': '~0.30.9',
+      'expo-status-bar': '~2.2.3',
+      'expo-system-ui': '~5.0.8',
+      'expo-web-browser': '~14.1.6',
+      react: '19.0.0',
+      'react-dom': '19.0.0',
+      'react-native': '0.79.3',
       [config.packageName]: '*',
-      'react-native-nitro-modules': '^0.22.1',
-      'react-native-reanimated': '~3.16.1',
-      'react-native-safe-area-context': '4.12.0',
-      'react-native-screens': '~4.4.0',
-      'react-native-web': '~0.19.13',
+      'react-native-nitro-modules': '^0.26.2',
+      'react-native-reanimated': '~3.17.4',
+      'react-native-safe-area-context': '5.4.0',
+      'react-native-screens': '~4.11.1',
+      'react-native-web': '^0.20.0',
     },
     devDependencies: {
-      '@babel/core': '^7.25.2',
-      '@types/react': '~18.3.12',
+      '@babel/core': '^7.27.4',
+      '@types/react': '^19.1.8',
+      '@types/react-native': '^0.73.0',
     },
     'release-it': {
       npm: {
@@ -64,59 +68,216 @@ export async function createExampleStructure(
     },
   }
 
-  const appContent = `import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, Alert } from 'react-native';
-import { ${toPascalCase(config.name)}Spec } from '${config.packageName}';
-import { NitroModules } from 'react-native-nitro-modules';
+  const appDir = path.join(exampleDir, 'app')
 
-const ${toPascalCase(config.name)} = NitroModules.create<${toPascalCase(config.name)}Spec>('${toPascalCase(config.name)}');
+  const appNotFoundContent = `import { Link, Stack } from 'expo-router';
+import { StyleSheet } from 'react-native';
 
-export default function App() {
-  const handleHello = () => {
-    try {
-      const result = ${toPascalCase(config.name)}.hello('World');
-      Alert.alert('Hello Result', result);
-    } catch (error) {
-      Alert.alert('Error', String(error));
-    }
-  };
+import { Text, View } from '@/components/Themed';
 
-  const handleAdd = () => {
-    try {
-      const result = ${toPascalCase(config.name)}.add(5, 3);
-      Alert.alert('Add Result', \`5 + 3 = \${result}\`);
-    } catch (error) {
-      Alert.alert('Error', String(error));
-    }
-  };
-
+export default function NotFoundScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>${toPascalCase(config.name)} Example</Text>
-      <Button title="Say Hello" onPress={handleHello} />
-      <View style={styles.spacer} />
-      <Button title="Add Numbers" onPress={handleAdd} />
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <Stack.Screen options={{ title: 'Oops!' }} />
+      <View style={styles.container}>
+        <Text style={styles.title}>This screen doesn't exist.</Text>
+
+        <Link href="/" style={styles.link}>
+          <Text style={styles.linkText}>Go to home screen!</Text>
+        </Link>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  link: {
+    marginTop: 15,
+    paddingVertical: 15,
+  },
+  linkText: {
+    fontSize: 14,
+    color: '#2e78b7',
+  },
+});
+`
+  const pascalName = toPascalCase(config.name)
+
+  const appIndexContent = `import { StyleSheet } from 'react-native'
+import { Text, View } from '@/components/Themed'
+import { ${pascalName} } from '${config.packageName}';
+
+export default function IndexScreen() {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{${pascalName}.hello("Nitro Developer")}</Text>
+      <Text style={styles.title}>2 + 2 is {${pascalName}.add(2, 2)}</Text>
+      <View
+        style={styles.separator}
+        lightColor="#eee"
+        darkColor="rgba(255,255,255,0.1)"
+      />
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    paddingVertical: 10,
   },
-  spacer: {
-    height: 10,
+  separator: {
+    marginVertical: 30,
+    height: 1,
+    width: '80%',
   },
-});
+})
+`
+
+  const appLayoutContent = `import 'expo-dev-client'
+  import 'react-native-reanimated'
+  import { useColorScheme } from '@/components/useColorScheme'
+  import {
+	DarkTheme,
+	DefaultTheme,
+	ThemeProvider,
+  } from '@react-navigation/native'
+  import { Stack } from 'expo-router'
+
+export { ErrorBoundary } from 'expo-router'
+
+export default function RootLayout() {
+  const colorScheme = useColorScheme()
+
+  return (
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+      </Stack>
+    </ThemeProvider>
+  )
+}
+`
+
+  const appJson = {
+    expo: {
+      name: 'example',
+      slug: 'example',
+      version: '1.0.0',
+      orientation: 'portrait',
+      icon: './assets/images/icon.png',
+      scheme: 'example',
+      userInterfaceStyle: 'automatic',
+      newArchEnabled: true,
+      splash: {
+        image: './assets/images/splash-icon.png',
+        resizeMode: 'contain',
+        backgroundColor: '#ffffff',
+      },
+      ios: {
+        supportsTablet: true,
+      },
+      android: {
+        adaptiveIcon: {
+          foregroundImage: './assets/images/adaptive-icon.png',
+          backgroundColor: '#ffffff',
+        },
+        edgeToEdgeEnabled: true,
+      },
+      web: {
+        bundler: 'metro',
+        output: 'static',
+        favicon: './assets/images/favicon.png',
+      },
+      plugins: ['expo-router'],
+      experiments: {
+        typedRoutes: true,
+      },
+    },
+  }
+
+  const tsConfig = {
+    extends: 'expo/tsconfig.base',
+    compilerOptions: {
+      strict: true,
+      paths: {
+        '@/*': ['./*'],
+        [config.packageName]: ['../package/src/index'],
+      },
+    },
+    include: ['**/*.ts', '**/*.tsx', '.expo/types/**/*.ts', 'expo-env.d.ts'],
+  }
+
+  const gitignoreContent = `# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+`
+
+  const metroConfigContent = `const { getDefaultConfig } = require("expo/metro-config");
+const path = require("path");
+
+const projectRoot = __dirname;
+const monorepoRoot = path.resolve(projectRoot, "../..");
+
+const config = getDefaultConfig(projectRoot);
+
+config.watchFolders = [monorepoRoot];
+config.resolver.nodeModulesPaths = [
+	path.resolve(projectRoot, "node_modules"),
+	path.resolve(monorepoRoot, "node_modules"),
+];
+
+module.exports = config;
 `
 
   await fs.writeJson(
@@ -126,12 +287,134 @@ const styles = StyleSheet.create({
       spaces: 2,
     },
   )
-  await fs.writeFile(path.join(exampleDir, 'App.tsx'), appContent)
+  await fs.writeJson(path.join(exampleDir, 'app.json'), appJson, {
+    spaces: 2,
+  })
+  await fs.writeJson(path.join(exampleDir, 'tsconfig.json'), tsConfig, {
+    spaces: 2,
+  })
+  await fs.writeFile(path.join(exampleDir, '.gitignore'), gitignoreContent)
+  await fs.writeFile(
+    path.join(exampleDir, 'metro.config.js'),
+    metroConfigContent,
+  )
+
+  const componentsDir = path.join(exampleDir, 'components')
+  const assetsImagesDir = path.join(exampleDir, 'assets', 'images')
+  const currentDir = path.dirname(fileURLToPath(import.meta.url))
+  const sourceAssetsDir = path.join(
+    currentDir,
+    '..',
+    '..',
+    'src',
+    'assets',
+    'images',
+  )
+
+  const themedComponentContent = `import { Text as DefaultText, useColorScheme, View as DefaultView } from 'react-native';
+
+import Colors from '@/constants/Colors';
+
+type ThemeProps = {
+  lightColor?: string;
+  darkColor?: string;
+};
+
+export type TextProps = ThemeProps & DefaultText['props'];
+export type ViewProps = ThemeProps & DefaultView['props'];
+
+export function useThemeColor(
+  props: { light?: string; dark?: string },
+  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
+) {
+  const theme = useColorScheme() ?? 'light';
+  const colorFromProps = props[theme];
+
+  if (colorFromProps) {
+    return colorFromProps;
+  } else {
+    return Colors[theme][colorName];
+  }
 }
 
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
+export function Text(props: TextProps) {
+  const { style, lightColor, darkColor, ...otherProps } = props;
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+
+  return <DefaultText style={[{ color }, style]} {...otherProps} />;
+}
+
+export function View(props: ViewProps) {
+  const { style, lightColor, darkColor, ...otherProps } = props;
+  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+
+  return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
+}
+`
+
+  const useColorSchemeContent = `import { useColorScheme as _useColorScheme } from 'react-native';
+
+export function useColorScheme() {
+  return _useColorScheme();
+}
+`
+
+  const colorsConstantContent = `const tintColorLight = '#2f95dc';
+const tintColorDark = '#fff';
+
+export default {
+  light: {
+    text: '#000',
+    background: '#fff',
+    tint: tintColorLight,
+    tabIconDefault: '#ccc',
+    tabIconSelected: tintColorLight,
+  },
+  dark: {
+    text: '#fff',
+    background: '#000',
+    tint: tintColorDark,
+    tabIconDefault: '#ccc',
+    tabIconSelected: tintColorDark,
+  },
+};
+`
+
+  const constantsDir = path.join(exampleDir, 'constants')
+
+  await fs.ensureDir(appDir)
+  await fs.ensureDir(componentsDir)
+  await fs.ensureDir(constantsDir)
+  await fs.ensureDir(assetsImagesDir)
+
+  await fs.writeFile(path.join(appDir, '+not-found.tsx'), appNotFoundContent)
+  await fs.writeFile(path.join(appDir, 'index.tsx'), appIndexContent)
+  await fs.writeFile(path.join(appDir, '_layout.tsx'), appLayoutContent)
+  await fs.writeFile(
+    path.join(componentsDir, 'Themed.tsx'),
+    themedComponentContent,
+  )
+  await fs.writeFile(
+    path.join(componentsDir, 'useColorScheme.tsx'),
+    useColorSchemeContent,
+  )
+  await fs.writeFile(
+    path.join(constantsDir, 'Colors.ts'),
+    colorsConstantContent,
+  )
+
+  // Copy image assets
+  const imageFiles = [
+    'icon.png',
+    'splash-icon.png',
+    'adaptive-icon.png',
+    'favicon.png',
+  ]
+  for (const imageFile of imageFiles) {
+    const sourcePath = path.join(sourceAssetsDir, imageFile)
+    const destPath = path.join(assetsImagesDir, imageFile)
+    if (await fs.pathExists(sourcePath)) {
+      await fs.copy(sourcePath, destPath)
+    }
+  }
 }

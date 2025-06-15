@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
+import { toPascalCase } from '../utils/string.js'
 import type { ProjectConfig } from './types.js'
 
 export async function createAndroidStructure(
@@ -8,6 +9,7 @@ export async function createAndroidStructure(
 ) {
   const androidDir = path.join(packageDir, 'android')
   await fs.ensureDir(androidDir)
+  const pascalName = toPascalCase(config.name)
 
   const buildGradleContent = `buildscript {
   repositories {
@@ -31,22 +33,22 @@ def isNewArchitectureEnabled() {
 
 apply plugin: "com.android.library"
 apply plugin: 'org.jetbrains.kotlin.android'
-apply from: '../nitrogen/generated/android/${config.name.toLowerCase()}+autolinking.gradle'
+apply from: '../nitrogen/generated/android/${pascalName}+autolinking.gradle'
 
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
 }
 
 def getExtOrDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["${config.name.toLowerCase()}_" + name]
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["${pascalName}_" + name]
 }
 
 def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["${config.name.toLowerCase()}_" + name]).toInteger()
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["${pascalName}_" + name]).toInteger()
 }
 
 android {
-  namespace "com.margelo.nitro.${config.name.toLowerCase()}"
+  namespace "com.margelo.nitro.${pascalName}"
 
   ndkVersion getExtOrDefault("ndkVersion")
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
@@ -150,10 +152,10 @@ dependencies {
 }
 `
 
-  const cmakeContent = `project(${config.name.toLowerCase()})
+  const cmakeContent = `project(${pascalName})
 cmake_minimum_required(VERSION 3.9.0)
 
-set(PACKAGE_NAME ${config.name.toLowerCase()})
+set(PACKAGE_NAME ${pascalName})
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -181,11 +183,11 @@ target_link_libraries(
 )
 `
 
-  const gradlePropertiesContent = `${config.name.toLowerCase()}_kotlinVersion=2.0.21
-${config.name.toLowerCase()}_minSdkVersion=23
-${config.name.toLowerCase()}_targetSdkVersion=35
-${config.name.toLowerCase()}_compileSdkVersion=34
-${config.name.toLowerCase()}_ndkVersion=27.1.12297006
+  const gradlePropertiesContent = `${pascalName}_kotlinVersion=2.0.21
+${pascalName}_minSdkVersion=23
+${pascalName}_targetSdkVersion=35
+${pascalName}_compileSdkVersion=34
+${pascalName}_ndkVersion=27.1.12297006
 `
 
   await fs.writeFile(path.join(androidDir, 'build.gradle'), buildGradleContent)
@@ -209,7 +211,7 @@ ${config.name.toLowerCase()}_ndkVersion=27.1.12297006
   )
 
   const cppAdapterContent = `#include <jni.h>
-#include "${toPascalCase(config.name)}OnLoad.hpp"
+#include "${pascalName}OnLoad.hpp"
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
   return margelo::nitro::${config.name.toLowerCase()}::initialize(vm);
@@ -231,7 +233,7 @@ import com.margelo.nitro.core.HybridObject;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
-public class ${toPascalCase(config.name)}Package extends TurboReactPackage {
+public class ${pascalName}Package extends TurboReactPackage {
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
@@ -246,7 +248,7 @@ public class ${toPascalCase(config.name)}Package extends TurboReactPackage {
   }
 
   static {
-    ${toPascalCase(config.name)}OnLoad.initializeNative();
+    ${pascalName}OnLoad.initializeNative();
   }
 }
 `
@@ -267,7 +269,7 @@ public class ${toPascalCase(config.name)}Package extends TurboReactPackage {
       'margelo',
       'nitro',
       config.name.toLowerCase(),
-      `${toPascalCase(config.name)}Package.java`,
+      `${pascalName}Package.java`,
     ),
     javaPackageContent,
   )
@@ -275,11 +277,4 @@ public class ${toPascalCase(config.name)}Package extends TurboReactPackage {
     path.join(androidSrcDir, 'AndroidManifest.xml'),
     androidManifestContent,
   )
-}
-
-function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, word => word.toUpperCase())
-    .replace(/\s+/g, '')
-    .replace(/[-_]/g, '')
 }
