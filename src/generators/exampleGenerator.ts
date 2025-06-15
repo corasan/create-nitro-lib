@@ -141,6 +141,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     paddingVertical: 10,
+    textAlign: 'center',
   },
   separator: {
     marginVertical: 30,
