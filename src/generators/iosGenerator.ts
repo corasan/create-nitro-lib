@@ -9,12 +9,14 @@ export async function createIosStructure(
   const iosDir = path.join(packageDir, 'ios')
   await fs.ensureDir(iosDir)
 
+  const pascaleName = toPascalCase(config.name)
+
   const podspecContent = `require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
-  s.name         = "react-native-${config.name}"
+  s.name         = "${pascaleName}"
   s.version      = package["version"]
   s.summary      = package["description"]
   s.homepage     = package["homepage"]
@@ -22,7 +24,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => min_ios_version_supported, :visionos => 1.0 }
-  s.source       = { :git => "https://github.com/Developer/react-native-${config.name}.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/Developer/${config.packageName}.git", :tag => "#{s.version}" }
 
   s.source_files = [
     # Implementation (Swift)
@@ -38,7 +40,7 @@ Pod::Spec.new do |s|
     "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES"
   }
 
-  load 'nitrogen/generated/ios/${toPascalCase(config.name)}+autolinking.rb'
+  load 'nitrogen/generated/ios/${pascaleName}+autolinking.rb'
   add_nitrogen_files(s)
 
   s.dependency 'React-jsi'
@@ -48,7 +50,7 @@ end
 `
 
   await fs.writeFile(
-    path.join(packageDir, `${config.packageName}.podspec`),
+    path.join(packageDir, `${pascaleName}.podspec`),
     podspecContent,
   )
 }
@@ -60,14 +62,15 @@ export async function createIosSwiftImplementation(
   const iosDir = path.join(packageDir, 'ios')
   const specsDir = path.join(iosDir, 'specs')
   await fs.ensureDir(specsDir)
+  const pascaleName = toPascalCase(config.name)
 
   const swiftContent = `import Foundation
 import NitroModules
 
-class Hybrid${toPascalCase(config.name)}: Hybrid${toPascalCase(config.name)}Spec {
+class Hybrid${pascaleName}: Hybrid${pascaleName}Spec {
 
     func hello(name: String) -> String {
-        return "Hello \\(name) from ${toPascalCase(config.name)}!"
+        return "Hello \\(name) from ${pascaleName}!"
     }
 
     func add(a: Double, b: Double) -> Double {
@@ -77,7 +80,7 @@ class Hybrid${toPascalCase(config.name)}: Hybrid${toPascalCase(config.name)}Spec
 `
 
   await fs.writeFile(
-    path.join(specsDir, `Hybrid${toPascalCase(config.name)}.swift`),
+    path.join(specsDir, `Hybrid${pascaleName}.swift`),
     swiftContent,
   )
 }

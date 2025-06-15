@@ -186,13 +186,12 @@ export async function createPackagePackageJson(
       'README.md',
     ],
     peerDependencies: {
-      react: '^18.2.0',
+      react: '*',
       'react-native': '*',
       'react-native-nitro-modules': '*',
     },
     devDependencies: {
-      '@types/react': '^18.2.6',
-      '@types/react-native': '^0.73.0',
+      '@types/react': '*',
       'nitro-codegen': '^0.26.2',
     },
     codegenConfig: {

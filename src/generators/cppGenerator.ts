@@ -9,45 +9,42 @@ export async function createCppImplementation(
   const cppDir = path.join(packageDir, 'cpp')
   await fs.ensureDir(cppDir)
 
+  const pascalName = toPascalCase(config.name)
+  const lowercaseName = config.name.toLowerCase()
+
   const cppContent = `#pragma once
 
-#include "Hybrid${toPascalCase(config.name)}Spec.hpp"
+#include "Hybrid${pascalName}Spec.hpp"
 
-namespace margelo::nitro::${config.name.toLowerCase()} {
-  std::string ${toPascalCase(config.name)}::hello(const std::string& name) {
-    return "Hello " + name + " from ${toPascalCase(config.name)}!";
+namespace margelo::nitro::${lowercaseName} {
+  std::string Hybrid${pascalName}::hello(const std::string& name) {
+  return "Hello " + name + " from ${pascalName}!";
   }
 
-  double ${toPascalCase(config.name)}::add(double a, double b) {
+  double ${pascalName}::add(double a, double b) {
     return a + b;
   }
-} // namespace margelo::nitro::${toPascalCase(config.name)}
+} // namespace margelo::nitro::${lowercaseName}
 `
 
   const hppContent = `#pragma once
 
-#include "Hybrid${toPascalCase(config.name)}Spec.hpp"
+#include "Hybrid${pascalName}Spec.hpp"
 #include <string>
 
-namespace margelo::nitro::${config.name.toLowerCase()} {
-class Hybrid${toPascalCase(config.name)}: public Hybrid${toPascalCase(config.name)}Spec {
+namespace margelo::nitro::${lowercaseName} {
+class Hybrid${pascalName}: public Hybrid${pascalName}Spec {
   public:
-    Hybrid${toPascalCase(config.name)}(): HybridObject(TAG) {}
+    Hybrid${pascalName}(): HybridObject(TAG) {}
 
     std::string hello(const std::string& name);
     double add(double a, double b);
   };
-} // namespace margelo::nitro::${config.name.toLowerCase()}
+} // namespace margelo::nitro::${lowercaseName}
 `
 
-  await fs.writeFile(
-    path.join(cppDir, `Hybrid${toPascalCase(config.name)}.cpp`),
-    cppContent,
-  )
-  await fs.writeFile(
-    path.join(cppDir, `Hybrid${toPascalCase(config.name)}.hpp`),
-    hppContent,
-  )
+  await fs.writeFile(path.join(cppDir, `Hybrid${pascalName}.cpp`), cppContent)
+  await fs.writeFile(path.join(cppDir, `Hybrid${pascalName}.hpp`), hppContent)
 }
 
 function toPascalCase(str: string): string {
