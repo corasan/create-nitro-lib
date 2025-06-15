@@ -48,7 +48,7 @@ def getExtOrIntegerDefault(name) {
 }
 
 android {
-  namespace "com.margelo.nitro.${pascalName}"
+  namespace "com.margelo.nitro.${pascalName.toLowerCase()}"
 
   ndkVersion getExtOrDefault("ndkVersion")
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
@@ -206,7 +206,7 @@ ${pascalName}_ndkVersion=27.1.12297006
       'com',
       'margelo',
       'nitro',
-      config.name.toLowerCase(),
+      pascalName.toLowerCase(),
     ),
   )
 
@@ -214,11 +214,11 @@ ${pascalName}_ndkVersion=27.1.12297006
 #include "${pascalName}OnLoad.hpp"
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
-  return margelo::nitro::${config.name.toLowerCase()}::initialize(vm);
+  return margelo::nitro::${pascalName.toLowerCase()}::initialize(vm);
 }
 `
 
-  const javaPackageContent = `package com.margelo.nitro.${config.name.toLowerCase()};
+  const javaPackageContent = `package com.margelo.nitro.${pascalName.toLowerCase()};
 
 import android.util.Log;
 
@@ -276,5 +276,56 @@ public class ${pascalName}Package extends TurboReactPackage {
   await fs.writeFile(
     path.join(androidSrcDir, 'AndroidManifest.xml'),
     androidManifestContent,
+  )
+}
+
+export async function createAndroidKotlinImplementation(
+  packageDir: string,
+  config: ProjectConfig,
+) {
+  const androidSrcDir = path.join(packageDir, 'android', 'src', 'main')
+  const pascalName = toPascalCase(config.name)
+
+  await fs.ensureDir(
+    path.join(
+      androidSrcDir,
+      'java',
+      'com',
+      'margelo',
+      'nitro',
+      config.name.toLowerCase(),
+    ),
+  )
+
+  const kotlinContent = `package com.margelo.nitro.${pascalName.toLowerCase()}
+
+import androidx.annotation.Keep
+import com.facebook.proguard.annotations.DoNotStrip
+
+@Keep
+@DoNotStrip
+class ${pascalName}: ${pascalName}Spec {
+
+    fun hello(name: String): String {
+        return "Hello $name from ${pascalName}!"
+    }
+
+    fun add(a: Double, b: Double): Double {
+        return a + b
+    }
+}
+`
+
+  await fs.writeFile(
+    path.join(
+      androidSrcDir,
+      'java',
+      'com',
+      'margelo',
+      'nitro',
+      config.name.toLowerCase(),
+      `${pascalName}.kt`,
+    ),
+    kotlinContent,
   )
 }

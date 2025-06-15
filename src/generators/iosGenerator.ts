@@ -61,8 +61,7 @@ export async function createIosSwiftImplementation(
   config: ProjectConfig,
 ) {
   const iosDir = path.join(packageDir, 'ios')
-  const specsDir = path.join(iosDir, 'specs')
-  await fs.ensureDir(specsDir)
+  await fs.ensureDir(iosDir)
   const pascalName = toPascalCase(config.name)
 
   const swiftContent = `import Foundation
@@ -81,7 +80,7 @@ class Hybrid${pascalName}: Hybrid${pascalName}Spec {
 `
 
   await fs.writeFile(
-    path.join(specsDir, `Hybrid${pascalName}.swift`),
+    path.join(iosDir, `Hybrid${pascalName}.swift`),
     swiftContent,
   )
 }
