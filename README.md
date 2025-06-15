@@ -7,7 +7,7 @@ A command-line tool to generate React Native Nitro Modules templates quickly and
 Create a new Nitro module project:
 
 ```bash
-bunx create-nitro-lib my-awesome-module
+bunx create-nitro-lib my-module
 ```
 
 With options:
@@ -30,7 +30,7 @@ bunx create-nitro-lib my-module --skip-install
 The generated project includes:
 
 ```
-my-module/
+react-native-my-module/
 ├── package/               # The nitro module package
 │   ├── src/              # TypeScript source code with specs
 │   ├── android/          # Android native implementation
