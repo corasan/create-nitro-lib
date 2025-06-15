@@ -165,7 +165,7 @@ add_library(\${PACKAGE_NAME} SHARED
 )
 
 # Add Nitrogen specs :)
-include(\${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/\${PACKAGE_NAME}+autolinking.cmake)
+include(\${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/${pascalName}+autolinking.cmake)
 
 # Set up local includes
 include_directories(
@@ -268,7 +268,7 @@ public class ${pascalName}Package extends TurboReactPackage {
       'com',
       'margelo',
       'nitro',
-      config.name.toLowerCase(),
+      pascalName.toLowerCase(),
       `${pascalName}Package.java`,
     ),
     javaPackageContent,
@@ -293,7 +293,7 @@ export async function createAndroidKotlinImplementation(
       'com',
       'margelo',
       'nitro',
-      config.name.toLowerCase(),
+      pascalName.toLowerCase(),
     ),
   )
 
@@ -304,13 +304,13 @@ import com.facebook.proguard.annotations.DoNotStrip
 
 @Keep
 @DoNotStrip
-class ${pascalName}: ${pascalName}Spec {
+class Hybrid${pascalName}: Hybrid${pascalName}Spec() {
 
-    fun hello(name: String): String {
+    override fun hello(name: String): String {
         return "Hello $name from ${pascalName}!"
     }
 
-    fun add(a: Double, b: Double): Double {
+    override fun add(a: Double, b: Double): Double {
         return a + b
     }
 }
@@ -323,9 +323,21 @@ class ${pascalName}: ${pascalName}Spec {
       'com',
       'margelo',
       'nitro',
-      config.name.toLowerCase(),
-      `${pascalName}.kt`,
+      pascalName.toLowerCase(),
+      `Hybrid${pascalName}.kt`,
     ),
     kotlinContent,
+  )
+  console.log(
+    'Created file at: ',
+    path.join(
+      androidSrcDir,
+      'java',
+      'com',
+      'margelo',
+      'nitro',
+      pascalName.toLowerCase(),
+      `Hybrid${pascalName}.kt`,
+    ),
   )
 }

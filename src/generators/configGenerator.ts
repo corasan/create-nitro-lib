@@ -21,7 +21,7 @@ export async function createNitroConfig(
     autolinking: {
       [pascalName]: {
         swift: `Hybrid${pascalName}`,
-        kotlin: pascalName,
+        kotlin: `Hybrid${pascalName}`,
       },
     },
     ignorePaths: ['**/node_modules'],
@@ -64,19 +64,22 @@ export async function createPackageConfigFiles(
     },
   }
 
-  const reactNativeConfigContent = `module.exports = {
-  dependency: {
-    platforms: {
-      android: {
-        sourceDir: '../android',
-        packageImportPath: 'import com.${config.name.toLowerCase()}.${toPascalCase(config.name)}Package;',
-      },
-      ios: {
-        podspecPath: '../${config.packageName}.podspec',
+  const reactNativeConfigContent = `// https://github.com/react-native-community/cli/blob/main/docs/dependencies.md
+
+  module.exports = {
+    dependency: {
+      platforms: {
+        /**
+         * @type {import('@react-native-community/cli-types').IOSDependencyParams}
+         */
+        ios: {},
+        /**
+         * @type {import('@react-native-community/cli-types').AndroidDependencyParams}
+         */
+        android: {},
       },
     },
-  },
-};
+  }
 `
 
   await fs.writeJson(path.join(packageDir, 'tsconfig.json'), tsconfigContent, {

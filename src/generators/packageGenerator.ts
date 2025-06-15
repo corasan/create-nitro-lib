@@ -1,7 +1,10 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 import { toPascalCase } from '../utils/string.js'
-import { createAndroidStructure } from './androidGenerator.js'
+import {
+  createAndroidKotlinImplementation,
+  createAndroidStructure,
+} from './androidGenerator.js'
 import { createNitroConfig } from './configGenerator.js'
 import { createPackageConfigFiles } from './configGenerator.js'
 import { createCppImplementation } from './cppGenerator.js'
@@ -24,6 +27,7 @@ export async function createPackageStructure(
   await createPackageConfigFiles(packageDir, config)
   await createCppImplementation(packageDir, config)
   await createIosSwiftImplementation(packageDir, config)
+  await createAndroidKotlinImplementation(packageDir, config)
 }
 
 export async function createPackageSourceStructure(
