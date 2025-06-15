@@ -33,7 +33,13 @@ export async function createPackageSourceStructure(
   const srcDir = path.join(packageDir, 'src')
   await fs.ensureDir(srcDir)
 
-  const indexContent = `export * from './specs/${toPascalCase(config.name)}.nitro';
+  const pascalName = toPascalCase(config.name)
+
+  const indexContent = `import {${pascalName} as ${pascalName}Spec} from './specs/${pascalName}.nitro';
+import { NitroModules } from 'react-native-nitro-modules';
+
+export const ${pascalName} =
+	NitroModules.createHybridObject<${pascalName}Spec>("${pascalName}");
 `
 
   const specsDir = path.join(srcDir, 'specs')
@@ -41,15 +47,12 @@ export async function createPackageSourceStructure(
 
   const specContent = `import { HybridObject } from 'react-native-nitro-modules';
 
-export interface ${toPascalCase(config.name)} extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> {
+export interface ${pascalName} extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> {
   hello(name: string): string;
   add(a: number, b: number): number;
 }
 `
 
   await fs.writeFile(path.join(srcDir, 'index.ts'), indexContent)
-  await fs.writeFile(
-    path.join(specsDir, `${toPascalCase(config.name)}.nitro.ts`),
-    specContent,
-  )
+  await fs.writeFile(path.join(specsDir, `${pascalName}.nitro.ts`), specContent)
 }

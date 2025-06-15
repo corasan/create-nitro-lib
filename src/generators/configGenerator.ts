@@ -18,7 +18,12 @@ export async function createNitroConfig(
       androidNamespace: [pascalName.toLowerCase()],
       androidCxxLibName: pascalName,
     },
-    autolinking: {},
+    autolinking: {
+      [pascalName]: {
+        swift: `Hybrid${pascalName}`,
+        kotlin: pascalName,
+      },
+    },
     ignorePaths: ['**/node_modules'],
   }
 

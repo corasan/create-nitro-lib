@@ -221,6 +221,7 @@ export default function RootLayout() {
       strict: true,
       paths: {
         '@/*': ['./*'],
+        [config.packageName]: ['../package/src/index'],
       },
     },
     include: ['**/*.ts', '**/*.tsx', '.expo/types/**/*.ts', 'expo-env.d.ts'],
