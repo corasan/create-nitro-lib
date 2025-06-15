@@ -121,18 +121,14 @@ export async function createRootConfigFiles(
 
   const biomeConfigContent = {
     $schema: 'https://biomejs.dev/schemas/1.9.4/schema.json',
-    vcs: {
-      enabled: true,
-      clientKind: 'git',
-      useIgnoreFile: true,
-    },
-    files: {
-      ignoreUnknown: false,
-      ignore: ['node_modules', 'lib', 'android/build', 'ios/build'],
-    },
     formatter: {
       enabled: true,
-      indentStyle: 'tab',
+      formatWithErrors: false,
+      indentStyle: 'space',
+      indentWidth: 2,
+      lineEnding: 'lf',
+      lineWidth: 80,
+      attributePosition: 'auto',
     },
     organizeImports: {
       enabled: true,
@@ -141,12 +137,32 @@ export async function createRootConfigFiles(
       enabled: true,
       rules: {
         recommended: true,
+        correctness: {
+          useExhaustiveDependencies: 'warn',
+        },
       },
     },
     javascript: {
       formatter: {
-        quoteStyle: 'double',
+        jsxQuoteStyle: 'double',
+        quoteProperties: 'asNeeded',
+        semicolons: 'asNeeded',
+        arrowParentheses: 'asNeeded',
+        bracketSpacing: true,
+        bracketSameLine: false,
+        quoteStyle: 'single',
+        attributePosition: 'auto',
+        lineWidth: 90,
+        trailingCommas: 'all',
       },
+    },
+    files: {
+      include: [
+        'example/**/*.ts',
+        'example/**/*.tsx',
+        'packages/**/*.ts',
+        'packages/**/*.tsx',
+      ],
     },
   }
 

@@ -27,6 +27,7 @@ export async function createExampleStructure(
       '@react-navigation/native': '^7.0.14',
       expo: '~53.0.11',
       'expo-build-properties': '~0.14.6',
+      'expo-dev-client': '~5.2.0',
       'expo-font': '~13.3.1',
       'expo-linking': '~7.1.5',
       'expo-router': '~5.1.0',
@@ -110,15 +111,17 @@ const styles = StyleSheet.create({
   },
 });
 `
+  const pascalName = toPascalCase(config.name)
 
   const appIndexContent = `import { StyleSheet } from 'react-native'
-
 import { Text, View } from '@/components/Themed'
+import { ${pascalName} } from '${config.packageName}';
 
-export default function TabOneScreen() {
+export default function IndexScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
+      <Text style={styles.title}>{${pascalName}.hello("Nitro Developer")}</Text>
+      <Text style={styles.title}>2 + 2 is {${pascalName}.add(2, 2)}</Text>
       <View
         style={styles.separator}
         lightColor="#eee"
@@ -137,6 +140,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+    paddingVertical: 10,
   },
   separator: {
     marginVertical: 30,
@@ -146,22 +150,17 @@ const styles = StyleSheet.create({
 })
 `
 
-  const appLayoutContent = `import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from '@react-navigation/native'
-import { Stack } from 'expo-router'
-import * as SplashScreen from 'expo-splash-screen'
-import 'react-native-reanimated'
-
-import { useColorScheme } from '@/components/useColorScheme'
+  const appLayoutContent = `import 'expo-dev-client'
+  import 'react-native-reanimated'
+  import { useColorScheme } from '@/components/useColorScheme'
+  import {
+	DarkTheme,
+	DefaultTheme,
+	ThemeProvider,
+  } from '@react-navigation/native'
+  import { Stack } from 'expo-router'
 
 export { ErrorBoundary } from 'expo-router'
-
-export const unstable_settings = {
-  initialRouteName: '(tabs)',
-}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
