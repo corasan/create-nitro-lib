@@ -8,9 +8,9 @@ export async function createNitroConfig(
 ) {
   const nitroConfig = {
     $schema: 'https://nitro.margelo.com/nitro.schema.json',
-    cxxNamespace: [toPascalCase(config.name)],
+    cxxNamespace: [config.name.toLowerCase()],
     ios: {
-      iosModuleName: toPascalCase(config.name),
+      iosModuleName: config.name.toLowerCase(),
     },
     android: {
       androidNamespace: [config.name.toLowerCase()],
@@ -30,13 +30,31 @@ export async function createPackageConfigFiles(
   config: ProjectConfig,
 ) {
   const tsconfigContent = {
-    extends: '../tsconfig.json',
+    include: ['src'],
     compilerOptions: {
-      outDir: './lib/typescript',
-      rootDir: './src',
+      composite: true,
+      rootDir: 'src',
+      allowUnreachableCode: false,
+      allowUnusedLabels: false,
+      esModuleInterop: true,
+      forceConsistentCasingInFileNames: true,
+      jsx: 'react-jsx',
+      lib: ['esnext'],
+      module: 'esnext',
+      target: 'esnext',
+      moduleResolution: 'node',
+      noEmit: false,
+      noFallthroughCasesInSwitch: true,
+      noImplicitReturns: true,
+      noImplicitUseStrict: false,
+      noStrictGenericChecks: false,
+      noUncheckedIndexedAccess: true,
+      noUnusedLocals: true,
+      noUnusedParameters: true,
+      resolveJsonModule: true,
+      skipLibCheck: true,
+      strict: true,
     },
-    include: ['src/**/*'],
-    exclude: ['node_modules', 'lib', 'android', 'ios'],
   }
 
   const reactNativeConfigContent = `module.exports = {
