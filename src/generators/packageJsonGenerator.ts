@@ -181,11 +181,36 @@ export async function createPackagePackageJson(
     devDependencies: {
       '@types/react': '*',
       'nitro-codegen': '^0.26.2',
+      'react-native-builder-bob': '^0.33.1',
     },
     codegenConfig: {
       name: `${toPascalCase(config.name)}Spec`,
       type: 'modules',
       jsSrcsDir: 'src',
+    },
+    'react-native-builder-bob': {
+      source: 'src',
+      output: 'lib',
+      targets: [
+        [
+          'commonjs',
+          {
+            esm: true,
+          },
+        ],
+        [
+          'module',
+          {
+            esm: true,
+          },
+        ],
+        [
+          'typescript',
+          {
+            esm: true,
+          },
+        ],
+      ],
     },
   }
 
